@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        (function(){
+            var t = localStorage.getItem('theme') || 'system';
+            if (t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>Moltis - a Rust AI assistant inspired by OpenClaw.</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta name="description" content="Moltis - a Rust AI assistant inspired by OpenClaw.">
+    <meta property="og:title" content="Moltis">
+    <meta property="og:description" content="Moltis - a Rust AI assistant inspired by OpenClaw.">
+    <meta property="og:image" content="https://moltis.org/og-image.png">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://moltis.org">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://moltis.org/og-image.png">
+    <meta name="twitter:title" content="Moltis">
+    <meta name="twitter:description" content="Moltis - a Rust AI assistant inspired by OpenClaw.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400&family=Outfit:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                },
+            },
+        }
+        function applyTheme(mode) {
+            if (mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        applyTheme(savedTheme);
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if ((localStorage.getItem('theme') || 'system') === 'system') applyTheme('system');
+        });
+    </script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+        }
+        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+        .animation-delay-2s { animation-delay: 2s; }
+        .font-outfit { font-family: 'Outfit', sans-serif; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white min-h-screen flex items-center justify-center relative transition-colors duration-300 pt-2 pb-8 overflow-x-hidden w-full">
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-orange-300/20 dark:bg-orange-600/15 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-red-300/20 dark:bg-red-600/15 rounded-full blur-3xl animate-pulse-slow animation-delay-2s"></div>
+    </div>
+    <div class="relative z-10 text-center px-4 sm:px-6 w-full max-w-2xl">
+        <div class="flex justify-end mb-1">
+            <div class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-0.5" id="theme-switch">
+                <button data-theme="light" title="Light" class="p-1 rounded transition-colors">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                </button>
+                <button data-theme="system" title="System" class="p-1 rounded transition-colors">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                </button>
+                <button data-theme="dark" title="Dark" class="p-1 rounded transition-colors">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+                </button>
+            </div>
+        </div>
+        <div class="flex justify-center mb-4">
+            <svg width="100" height="82" viewBox="0 0 160 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="shell" x1="40" y1="40" x2="120" y2="110" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#f97316"/>
+                        <stop offset="100%" stop-color="#ea580c"/>
+                    </linearGradient>
+                    <linearGradient id="claw" x1="0" y1="0" x2="50" y2="50" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#fb923c"/>
+                        <stop offset="100%" stop-color="#ea580c"/>
+                    </linearGradient>
+                    <radialGradient id="belly" cx="80" cy="85" r="30" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#fed7aa"/>
+                        <stop offset="100%" stop-color="#fdba74"/>
+                    </radialGradient>
+                </defs>
+
+                <!-- Left claw arm -->
+                <path d="M44 55 Q30 38 18 26" stroke="url(#claw)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                <!-- Left claw top pincer -->
+                <path d="M18 26 Q10 14 4 8 Q0 4 2 0 Q6 -2 10 2 Q14 6 16 14 Q17 18 18 26" fill="url(#claw)"/>
+                <!-- Left claw bottom pincer -->
+                <path d="M18 26 Q8 26 2 30 Q-2 33 0 36 Q3 39 8 36 Q13 33 18 26" fill="url(#claw)"/>
+
+                <!-- Right claw arm -->
+                <path d="M116 55 Q130 38 142 26" stroke="url(#claw)" stroke-width="8" stroke-linecap="round" fill="none"/>
+                <!-- Right claw top pincer -->
+                <path d="M142 26 Q150 14 156 8 Q160 4 158 0 Q154 -2 150 2 Q146 6 144 14 Q143 18 142 26" fill="url(#claw)"/>
+                <!-- Right claw bottom pincer -->
+                <path d="M142 26 Q152 26 158 30 Q162 33 160 36 Q157 39 152 36 Q147 33 142 26" fill="url(#claw)"/>
+
+                <!-- Left legs -->
+                <path d="M50 82 Q32 90 18 100" stroke="#ea580c" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.8"/>
+                <path d="M46 90 Q30 102 16 114" stroke="#ea580c" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
+                <path d="M48 98 Q38 112 30 124" stroke="#ea580c" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+                <!-- Right legs -->
+                <path d="M110 82 Q128 90 142 100" stroke="#ea580c" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.8"/>
+                <path d="M114 90 Q130 102 144 114" stroke="#ea580c" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
+                <path d="M112 98 Q122 112 130 124" stroke="#ea580c" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.6"/>
+
+                <!-- Body -->
+                <ellipse cx="80" cy="76" rx="40" ry="32" fill="url(#shell)"/>
+
+                <!-- Belly highlight -->
+                <ellipse cx="80" cy="82" rx="24" ry="18" fill="url(#belly)" opacity="0.4"/>
+
+                <!-- Shell texture lines -->
+                <path d="M80 44 L80 108" stroke="#c2410c" stroke-width="0.8" opacity="0.25"/>
+                <path d="M52 52 Q80 68 108 52" stroke="#c2410c" stroke-width="0.8" opacity="0.2" fill="none"/>
+                <path d="M44 70 Q80 88 116 70" stroke="#c2410c" stroke-width="0.8" opacity="0.2" fill="none"/>
+
+                <!-- Eye stalks -->
+                <ellipse cx="64" cy="52" rx="4" ry="6" fill="#f97316"/>
+                <ellipse cx="96" cy="52" rx="4" ry="6" fill="#f97316"/>
+
+                <!-- Eyes (white) -->
+                <ellipse cx="64" cy="56" rx="9" ry="10" fill="white"/>
+                <ellipse cx="96" cy="56" rx="9" ry="10" fill="white"/>
+
+                <!-- Pupils -->
+                <ellipse cx="65" cy="56" rx="5" ry="6" fill="#1c1917"/>
+                <ellipse cx="97" cy="56" rx="5" ry="6" fill="#1c1917"/>
+
+                <!-- Eye shine -->
+                <ellipse cx="67" cy="53" rx="2" ry="2.5" fill="white" opacity="0.9"/>
+                <ellipse cx="99" cy="53" rx="2" ry="2.5" fill="white" opacity="0.9"/>
+
+                <!-- Smile -->
+                <path d="M68 80 Q80 90 92 80" stroke="#9a3412" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+            </svg>
+        </div>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-2 bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-400 dark:to-red-400 bg-clip-text text-transparent font-outfit">
+            Moltis
+        </h1>
+        <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-4">Your personal AI assistant, right on your machine.</p>
+        <p class="mb-7">
+            <a href="/statement/" class="inline-flex items-center gap-2 text-base font-semibold text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 underline underline-offset-4 decoration-orange-400/70 hover:decoration-orange-500 transition-colors">
+                Read the author's statement
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </p>
+        <div class="flex items-center justify-center gap-3 mb-6">
+            <a href="https://docs.moltis.org" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:border-orange-400 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors text-sm font-medium">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                Documentation
+            </a>
+            <a href="https://github.com/moltis-org/moltis" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:border-orange-400 dark:hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors text-sm font-medium">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                View on GitHub
+            </a>
+        </div>
+        <!-- Installation tabs -->
+        <div class="max-w-3xl mx-auto text-left my-8">
+            <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden shadow-lg">
+                <div class="flex items-center gap-2 px-4 py-2.5 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
+                    <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                    <span class="w-3 h-3 rounded-full bg-green-400"></span>
+                    <span class="ml-2 text-xs font-mono text-gray-400 dark:text-gray-500">~ quickstart</span>
+                </div>
+                <div class="flex gap-1 px-4 pt-3 pb-2 border-b border-gray-200 dark:border-gray-800 overflow-x-auto hide-scrollbar" id="install-tabs">
+                    <button data-tab="curl" class="shrink-0 px-3 py-1 text-xs font-medium rounded-md transition-colors">Install</button>
+                    <button data-tab="brew" class="shrink-0 px-3 py-1 text-xs font-medium rounded-md transition-colors">Homebrew</button>
+                    <button data-tab="binstall" class="shrink-0 px-3 py-1 text-xs font-medium rounded-md transition-colors">Cargo</button>
+                    <button data-tab="docker" class="shrink-0 px-3 py-1 text-xs font-medium rounded-md transition-colors">Docker</button>
+                    <button data-tab="source" class="shrink-0 px-3 py-1 text-xs font-medium rounded-md transition-colors">Source</button>
+                    <button data-tab="others" class="shrink-0 px-3 py-1 text-xs font-medium rounded-md transition-colors">Others</button>
+                </div>
+                <div class="p-4 font-mono text-xs sm:text-sm leading-relaxed overflow-x-auto">
+                    <div id="tab-curl" class="install-content">
+                        <p class="text-gray-500 dark:text-gray-500">$ <span class="text-gray-700 dark:text-gray-300">curl -fsSL https://www.moltis.org/install.sh | sh</span></p>
+                    </div>
+                    <div id="tab-brew" class="install-content hidden">
+                        <p class="text-gray-500 dark:text-gray-500">$ <span class="text-gray-700 dark:text-gray-300">brew install moltis-org/tap/moltis</span></p>
+                    </div>
+                    <div id="tab-binstall" class="install-content hidden">
+                        <p class="text-gray-500 dark:text-gray-500 mb-1"># Pre-built binary via cargo-binstall (no compilation)</p>
+                        <p class="text-gray-500 dark:text-gray-500">$ <span class="text-gray-700 dark:text-gray-300">cargo binstall moltis</span></p>
+                    </div>
+                    <div id="tab-docker" class="install-content hidden">
+                        <p class="text-gray-500 dark:text-gray-500 mb-1"># Multi-arch: amd64/arm64</p>
+                        <p class="text-gray-500 dark:text-gray-500">$ <span class="text-gray-700 dark:text-gray-300">docker pull ghcr.io/moltis-org/moltis:latest</span></p>
+                    </div>
+                    <div id="tab-source" class="install-content hidden">
+                        <p class="text-gray-500 dark:text-gray-500 mb-1"># Build from source</p>
+                        <p class="text-gray-500 dark:text-gray-500">$ <span class="text-gray-700 dark:text-gray-300">cargo install moltis --git https://github.com/moltis-org/moltis</span></p>
+                    </div>
+                    <div id="tab-others" class="install-content hidden">
+                        <p class="text-gray-500 dark:text-gray-500 mb-3"># Download packages from <a href="https://github.com/moltis-org/moltis/releases" class="text-orange-500 hover:text-orange-600 dark:text-orange-400 dark:hover:text-orange-300 underline">GitHub Releases</a></p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-2"># Debian/Ubuntu (.deb)</p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-3">$ <span class="text-gray-700 dark:text-gray-300">sudo dpkg -i moltis_*_amd64.deb</span></p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-2"># Fedora/RHEL (.rpm)</p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-3">$ <span class="text-gray-700 dark:text-gray-300">sudo dnf install moltis-*.x86_64.rpm</span></p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-2"># Arch Linux (.pkg.tar.zst)</p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-3">$ <span class="text-gray-700 dark:text-gray-300">sudo pacman -U moltis-*-x86_64.pkg.tar.zst</span></p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-2"># Snap</p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-3">$ <span class="text-gray-700 dark:text-gray-300">sudo snap install moltis</span></p>
+                        <p class="text-gray-500 dark:text-gray-500 mb-2"># AppImage</p>
+                        <p class="text-gray-500 dark:text-gray-500">$ <span class="text-gray-700 dark:text-gray-300">./moltis-*-x86_64.AppImage</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="cloud-deploy" class="max-w-3xl mx-auto mb-8 text-left">
+            <div class="p-4 sm:p-5 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div class="inline-flex items-center gap-2">
+                        <span class="text-orange-500 dark:text-orange-400">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="m8 17 4 4 4-4"/><path d="M12 12v9"/></svg>
+                        </span>
+                        <h2 class="text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-200">One-click cloud deploy</h2>
+                    </div>
+                    <span class="inline-flex items-center rounded-full bg-orange-100 dark:bg-orange-900/40 border border-orange-200 dark:border-orange-800 px-2 py-0.5 text-[10px] sm:text-[11px] font-semibold text-orange-700 dark:text-orange-300">Ready in under a minute</span>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-4">Cloud is a great way to try Moltis. For the full personal assistant experience, running locally on your own Mac is best.</p>
+                <div class="flex flex-wrap items-center gap-2 mb-4">
+                    <a href="https://cloud.digitalocean.com/apps/new?repo=https://github.com/moltis-org/moltis/tree/main" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-sky-200 dark:border-sky-900/70 bg-sky-50 dark:bg-sky-950/30 text-sky-700 dark:text-sky-300 hover:border-sky-400 dark:hover:border-sky-600 transition-colors text-[11px] sm:text-xs font-medium" aria-label="Deploy Moltis to DigitalOcean">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" fill="#0080FF"/>
+                            <rect x="10" y="5" width="4" height="14" fill="white"/>
+                            <rect x="5" y="10" width="14" height="4" fill="white"/>
+                        </svg>
+                        Deploy on DigitalOcean
+                    </a>
+                    <a href="https://render.com/deploy?repo=https://github.com/moltis-org/moltis" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-emerald-200 dark:border-emerald-900/70 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 hover:border-emerald-400 dark:hover:border-emerald-600 transition-colors text-[11px] sm:text-xs font-medium" aria-label="Deploy Moltis to Render">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 18V6h8a6 6 0 1 1 0 12H4z" fill="#46E3B7"/>
+                            <path d="M12 10a2 2 0 1 1 0 4H8v-4h4z" fill="#0B1F1A"/>
+                        </svg>
+                        Deploy on Render
+                    </a>
+                    <a href="https://railway.com/template/new?repo=moltis-org/moltis" class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md border border-violet-200 dark:border-violet-900/70 bg-violet-50 dark:bg-violet-950/30 text-violet-700 dark:text-violet-300 hover:border-violet-400 dark:hover:border-violet-600 transition-colors text-[11px] sm:text-xs font-medium" aria-label="Deploy Moltis to Railway">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M4 6h14a2 2 0 0 1 2 2v10H6a2 2 0 0 1-2-2V6z" fill="#7C3AED"/>
+                            <path d="M8 10h8v2H8zM8 14h5v2H8z" fill="white"/>
+                        </svg>
+                        Deploy on Railway
+                    </a>
+                </div>
+                <div class="mb-1 flex w-full items-center gap-3 px-3 py-2 rounded-md bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800">
+                    <span class="text-[10px] font-semibold uppercase tracking-wide text-orange-700 dark:text-orange-300">Fly.io</span>
+                    <code class="min-w-0 flex-1 overflow-x-auto whitespace-nowrap font-mono text-[11px] sm:text-xs text-orange-800 dark:text-orange-200">fly launch --image ghcr.io/moltis-org/moltis:latest</code>
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Need setup details? See <a href="https://docs.moltis.org/cloud-deploy.html" class="text-orange-500 dark:text-orange-400 hover:text-orange-600 dark:hover:text-orange-300 underline">Cloud Deploy docs</a>.</p>
+            </div>
+        </div>
+
+        <!-- Feature highlights -->
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 max-w-3xl mx-auto mb-8 text-left">
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Single Binary</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">One self-contained binary. No runtime dependencies, just download and run.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Memory Safe</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Secrets zeroed on drop. No unsafe code in the codebase.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Authentication</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">HTTPS by default. Password, token, and passkeys access.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Compile-time Safe</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Misconfigurations caught by the compiler, not in production.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">SSRF Protected</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Blocks loopback, private, and link-local IPs from LLM fetch.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Streaming-first</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">First token appears instantly. Lock-free, no GC spikes.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Skills & MCP</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Plugins, MCP tool servers. Stdio or HTTP/SSE, auto-restart.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">FS or Sandbox</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Full filesystem or per-session Docker/Apple Container isolation.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Long-term Memory</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Hybrid vector + full-text search. Your agent remembers context.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Self-Extension</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Creates its own skills at runtime. Session branching, hot-reload.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Multi-Channel</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Web UI, Telegram, or API. One agent, multiple frontends.</p>
+            </div>
+            <div class="p-3 sm:p-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-1.5 sm:mb-2">
+                    <span class="text-orange-500 dark:text-orange-400 shrink-0">
+                        <svg width="16" height="16" class="sm:w-5 sm:h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                    </span>
+                    <p class="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">Trusted Network</p>
+                </div>
+                <p class="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Domain-filtering proxy. Allowlist or approve requests interactively.</p>
+            </div>
+        </div>
+
+        <!-- Extended features checklist -->
+        <div class="max-w-3xl mx-auto mb-8 text-left">
+            <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4 text-center">And much more...</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                <!-- Security -->
+                <div>
+                    <h3 class="text-sm font-semibold text-orange-500 dark:text-orange-400 mb-2 uppercase tracking-wide">Security</h3>
+                    <ul class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Passkeys (WebAuthn)</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Scoped API keys</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Secrets zeroed on drop</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Human-in-the-loop approval</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Origin validation (CSWSH)</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> No unsafe code</li>
+                    </ul>
+                </div>
+                <!-- LLM Providers -->
+                <div>
+                    <h3 class="text-sm font-semibold text-orange-500 dark:text-orange-400 mb-2 uppercase tracking-wide">LLM Providers</h3>
+                    <ul class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> 30+ cloud providers</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> OpenRouter (100+ models)</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Ollama local models</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> MLX + GGUF local models</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Provider fallback chains</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Per-provider metrics</li>
+                    </ul>
+                </div>
+                <!-- Memory -->
+                <div>
+                    <h3 class="text-sm font-semibold text-orange-500 dark:text-orange-400 mb-2 uppercase tracking-wide">Memory</h3>
+                    <ul class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Hybrid search (vector + FTS)</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Local embeddings (GGUF)</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> OpenAI batch API (50% off)</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Embedding cache</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> File watching / live sync</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Session export</li>
+                    </ul>
+                </div>
+                <!-- Extensibility -->
+                <div>
+                    <h3 class="text-sm font-semibold text-orange-500 dark:text-orange-400 mb-2 uppercase tracking-wide">Extensibility</h3>
+                    <ul class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> MCP server support</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Hook system (lifecycle)</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Cron job scheduling</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> TOML configuration</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Environment overrides</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Dynamic port allocation</li>
+                    </ul>
+                </div>
+                <!-- Channels -->
+                <div>
+                    <h3 class="text-sm font-semibold text-orange-500 dark:text-orange-400 mb-2 uppercase tracking-wide">Channels</h3>
+                    <ul class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Web UI</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Telegram bot</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> JSON-RPC API</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Mobile PWA</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Push notifications</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Multi-device sync</li>
+                    </ul>
+                </div>
+                <!-- Observability -->
+                <div>
+                    <h3 class="text-sm font-semibold text-orange-500 dark:text-orange-400 mb-2 uppercase tracking-wide">Observability</h3>
+                    <ul class="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Prometheus metrics</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> OpenTelemetry tracing</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Structured logging</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Per-provider charts</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> SQLite persistence</li>
+                        <li class="flex items-center gap-2"><span class="text-orange-500">✓</span> Real-time WebSocket</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <p class="font-mono text-[11px] text-gray-400 dark:text-gray-500 mb-8 leading-relaxed max-w-md mx-auto">
+            Ferris molted. The shell cracked open.<br>
+            Now the claw speaks on every channel,<br>
+            remembers everything, and <span class="text-orange-500 dark:text-orange-400">owns your localhost</span>.
+        </p>
+        <p class="inline-flex items-center gap-3 text-xs text-gray-400 dark:text-gray-600">
+            <span class="inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                MIT Licensed
+            </span>
+            <a href="https://github.com/moltis-org/moltis" class="inline-flex items-center gap-1.5 hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                GitHub
+            </a>
+            <a href="https://discord.gg/t873en2E" class="inline-flex items-center gap-1.5 hover:text-orange-500 dark:hover:text-orange-400 transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.369a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.211.375-.444.864-.608 1.249a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.249.077.077 0 0 0-.079-.037 19.736 19.736 0 0 0-4.885 1.515.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.995a.076.076 0 0 0-.041-.106 13.106 13.106 0 0 1-1.872-.892.078.078 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.009c.12.1.246.198.373.292a.078.078 0 0 1-.006.128 12.298 12.298 0 0 1-1.873.892.077.077 0 0 0-.04.107c.36.699.772 1.364 1.225 1.994a.076.076 0 0 0 .084.028 19.837 19.837 0 0 0 6.002-3.03.077.077 0 0 0 .031-.055c.5-5.177-.838-9.674-3.548-13.66a.061.061 0 0 0-.031-.03zM8.02 15.331c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.211 0 2.176 1.094 2.157 2.418 0 1.334-.955 2.419-2.157 2.419zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.418 2.157-2.418 1.212 0 2.176 1.094 2.157 2.418 0 1.334-.945 2.419-2.157 2.419z"/></svg>
+                Discord
+            </a>
+        </p>
+        <p class="text-xs text-gray-400 dark:text-gray-600 mt-2">
+            built with love ❤️ by <a href="https://pen.so" class="underline hover:text-orange-500 dark:hover:text-orange-400 transition-colors">Fabien Penso</a>
+        </p>
+    </div>
+
+    <script>
+        // Installation tabs
+        const tabsEl = document.getElementById('install-tabs');
+        const tabs = ['curl', 'brew', 'binstall', 'docker', 'source', 'others'];
+        let activeTab = 'curl';
+
+        function updateTabs() {
+            tabsEl.querySelectorAll('button').forEach(btn => {
+                const isActive = btn.dataset.tab === activeTab;
+                btn.className = 'px-3 py-1 text-xs font-medium rounded-md transition-colors ' + (isActive
+                    ? 'bg-orange-500 text-white'
+                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700');
+            });
+            tabs.forEach(tab => {
+                const content = document.getElementById('tab-' + tab);
+                if (content) content.classList.toggle('hidden', tab !== activeTab);
+            });
+        }
+        updateTabs();
+
+        tabsEl.addEventListener('click', e => {
+            const btn = e.target.closest('button[data-tab]');
+            if (!btn) return;
+            activeTab = btn.dataset.tab;
+            updateTabs();
+        });
+
+        /* COMMENTED OUT - Old terminal animation (uncomment to re-enable)
+        const lines = [
+            { color: false, text: '  moltis gateway v0.1.0' },
+            { color: false, text: '  protocol v3, listening on ', link: 'https://moltis.localhost:1087' },
+            { color: true, text: '  llm: 3 providers, 21 models' },
+            { color: true, text: '  skills: 4 enabled, 3 repos' },
+            { color: true, text: '  mcp: 1 configured (starting in background)' },
+            { color: true, text: '  sandbox: apple-container backend' },
+            { color: false, text: '  config: ~/.config/moltis/moltis.toml' },
+            { color: false, text: '  data: ~/.moltis' },
+            { color: false, text: '  run `moltis trust-ca` to remove browser warnings' },
+        ];
+        const container = document.getElementById('terminal-output');
+        let i = 0;
+        function addLine() {
+            if (i >= lines.length) return;
+            const line = lines[i];
+            const el = document.createElement('p');
+            el.style.whiteSpace = 'pre';
+            el.className = line.color
+                ? 'text-orange-600 dark:text-orange-400'
+                : 'text-gray-500 dark:text-gray-500';
+            el.textContent = line.text;
+            if (line.link) {
+                const span = document.createElement('span');
+                span.textContent = line.link;
+                span.className = 'underline cursor-default';
+                el.appendChild(span);
+            }
+            container.appendChild(el);
+            i++;
+            setTimeout(addLine, 80 + Math.random() * 60);
+        }
+        setTimeout(addLine, 600);
+        END COMMENTED OUT */
+
+        // Theme switch
+        const switchEl = document.getElementById('theme-switch');
+        function updateButtons(active) {
+            switchEl.querySelectorAll('button').forEach(btn => {
+                const isActive = btn.dataset.theme === active;
+                btn.className = 'p-1 rounded transition-colors ' + (isActive
+                    ? 'bg-white dark:bg-gray-700 text-orange-500 shadow-sm'
+                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300');
+            });
+        }
+        updateButtons(savedTheme);
+        switchEl.addEventListener('click', e => {
+            const btn = e.target.closest('button[data-theme]');
+            if (!btn) return;
+            const mode = btn.dataset.theme;
+            localStorage.setItem('theme', mode);
+            applyTheme(mode);
+            updateButtons(mode);
+        });
+    </script>
+</body>
+</html>
