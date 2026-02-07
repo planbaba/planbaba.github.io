@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        (function () {
+            var t = localStorage.getItem('theme') || 'system';
+            if (t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>PlanBaba Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    typography: {
+                        DEFAULT: {
+                            css: {
+                                maxWidth: 'none',
+                                a: {
+                                    color: '#ea580c',
+                                    textDecoration: 'none',
+                                    fontWeight: '600'
+                                },
+                                'a:hover': {
+                                    color: '#c2410c'
+                                },
+                                code: {
+                                    backgroundColor: '#f3f4f6',
+                                    borderRadius: '0.375rem',
+                                    padding: '0.125rem 0.375rem'
+                                },
+                                'code::before': { content: '""' },
+                                'code::after': { content: '""' },
+                                pre: {
+                                    backgroundColor: '#111827',
+                                    color: '#f9fafb',
+                                    borderRadius: '0.75rem',
+                                    padding: '1rem'
+                                }
+                            }
+                        },
+                        invert: {
+                            css: {
+                                a: { color: '#fdba74' },
+                                'a:hover': { color: '#fb923c' },
+                                code: {
+                                    backgroundColor: '#1f2937',
+                                    color: '#f3f4f6'
+                                },
+                                pre: {
+                                    backgroundColor: '#030712'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        function applyTheme(mode) {
+            if (mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        applyTheme(savedTheme);
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if ((localStorage.getItem('theme') || 'system') === 'system') applyTheme('system');
+        });
+
+        function docsPage() {
+            const sources = [
+                'https://raw.githubusercontent.com/planbaba/planbaba.github.io/main/README.md',
+                'https://raw.githubusercontent.com/planbaba/planbaba.github.io/master/README.md'
+            ];
+
+            marked.setOptions({
+                gfm: true,
+                breaks: false
+            });
+
+            const renderer = new marked.Renderer();
+            renderer.link = ({ href, title, tokens }) => {
+                const text = marked.Parser.parseInline(tokens);
+                const titleAttr = title ? ` title="${title}"` : '';
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer"${titleAttr}>${text}</a>`;
+            };
+
+            return {
+                loading: true,
+                error: '',
+                markdownHtml: '',
+                sourceUrl: '',
+                async loadReadme() {
+                    this.loading = true;
+                    this.error = '';
+
+                    for (const url of sources) {
+                        try {
+                            const response = await fetch(url, { cache: 'no-store' });
+                            if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+
+                            const markdown = await response.text();
+                            this.markdownHtml = marked.parse(markdown, { renderer });
+                            this.sourceUrl = url;
+                            this.loading = false;
+                            return;
+                        } catch (err) {
+                            this.error = err.message;
+                        }
+                    }
+
+                    this.loading = false;
+                }
+            };
+        }
+    </script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body x-data="docsPage()" x-init="loadReadme()" class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white min-h-screen transition-colors duration-300 overflow-x-hidden">
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute -top-20 left-10 w-80 h-80 rounded-full blur-3xl bg-orange-300/20 dark:bg-orange-700/10 animate-pulse-slow"></div>
+        <div class="absolute bottom-0 right-0 w-80 h-80 rounded-full blur-3xl bg-red-300/20 dark:bg-red-700/10 animate-pulse-slow"></div>
+    </div>
+
+    <div id="overlay" class="fixed inset-0 bg-black/50 hidden lg:hidden z-30"></div>
+    <aside id="offcanvas" class="fixed top-0 left-0 h-full w-72 z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 bg-white/95 dark:bg-gray-900/95 backdrop-blur border-r border-gray-200 dark:border-gray-800 p-5 flex flex-col">
+        <div class="flex items-center justify-between mb-6">
+            <p class="text-lg font-bold">PlanBaba CRM</p>
+            <button id="closeMenu" class="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Close menu">✕</button>
+        </div>
+        <nav class="space-y-1 text-sm">
+            <a href="dashboard.html" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Overview</a>
+            <a href="leads.html" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Leads</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Clients</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Tasks</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Reports</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Integrations</a>
+            <a href="documentation.html" class="block px-3 py-2 rounded-lg bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 font-semibold">Documentation</a>
+        </nav>
+        <div class="mt-auto rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/60 p-4">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Documentation Source</p>
+            <p class="text-sm font-semibold break-all" x-text="sourceUrl || 'Loading README…'"></p>
+        </div>
+    </aside>
+
+    <main class="lg:pl-72">
+        <header class="sticky top-0 z-20 border-b border-gray-200/80 dark:border-gray-800 bg-white/90 dark:bg-gray-950/80 backdrop-blur px-4 sm:px-6 py-3">
+            <div class="max-w-7xl mx-auto flex items-center gap-3 sm:gap-4">
+                <button id="openMenu" class="lg:hidden p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Open menu">☰</button>
+                <div class="min-w-0">
+                    <h1 class="text-lg sm:text-xl font-semibold">Project Documentation</h1>
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Rendered from GitHub README using Alpine.js and GitHub Flavored Markdown.</p>
+                </div>
+                <div class="ml-auto flex items-center gap-2">
+                    <div id="theme-switch" class="flex items-center rounded-lg border border-gray-200 dark:border-gray-700 p-1 bg-gray-50 dark:bg-gray-800/70">
+                        <button data-theme="light" class="px-2 py-1 text-xs rounded-md">☀️</button>
+                        <button data-theme="dark" class="px-2 py-1 text-xs rounded-md">🌙</button>
+                        <button data-theme="system" class="px-2 py-1 text-xs rounded-md">🖥️</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="max-w-5xl mx-auto p-4 sm:p-6">
+            <article class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/70 p-5 sm:p-6">
+                <div x-show="loading" class="text-sm text-gray-500 dark:text-gray-400">Fetching README from GitHub...</div>
+
+                <div x-show="!loading && error" class="rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/20 p-4 text-sm text-red-700 dark:text-red-300">
+                    <p class="font-semibold mb-1">Unable to load documentation.</p>
+                    <p x-text="error"></p>
+                </div>
+
+                <div x-show="!loading && !error" class="prose prose-gray dark:prose-invert prose-headings:font-semibold prose-pre:overflow-x-auto max-w-none" x-html="markdownHtml"></div>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        const themeSwitch = document.getElementById('theme-switch');
+        const themeButtons = themeSwitch.querySelectorAll('button');
+
+        function updateThemeButtons(mode) {
+            themeButtons.forEach(btn => {
+                const active = btn.dataset.theme === mode;
+                btn.classList.toggle('bg-white', active);
+                btn.classList.toggle('dark:bg-gray-700', active);
+                btn.classList.toggle('text-orange-600', active);
+                btn.classList.toggle('dark:text-orange-300', active);
+                btn.classList.toggle('text-gray-500', !active);
+                btn.classList.toggle('dark:text-gray-400', !active);
+            });
+        }
+
+        const initialTheme = localStorage.getItem('theme') || 'system';
+        updateThemeButtons(initialTheme);
+
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const selectedTheme = btn.dataset.theme;
+                localStorage.setItem('theme', selectedTheme);
+                applyTheme(selectedTheme);
+                updateThemeButtons(selectedTheme);
+            });
+        });
+
+        const offcanvas = document.getElementById('offcanvas');
+        const overlay = document.getElementById('overlay');
+
+        function closeMenu() {
+            offcanvas.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        function openMenu() {
+            offcanvas.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+
+        document.getElementById('openMenu').addEventListener('click', openMenu);
+        document.getElementById('closeMenu').addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                overlay.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
