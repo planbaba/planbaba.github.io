@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        (function () {
+            var t = localStorage.getItem('theme') || 'system';
+            if (t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>PlanBaba Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        };
+
+        function applyTheme(mode) {
+            if (mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'system';
+        applyTheme(savedTheme);
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            if ((localStorage.getItem('theme') || 'system') === 'system') applyTheme('system');
+        });
+    </script>
+    <style>
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .animate-pulse-slow { animation: pulse-slow 4s ease-in-out infinite; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-white min-h-screen transition-colors duration-300 overflow-x-hidden">
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute -top-20 left-10 w-80 h-80 rounded-full blur-3xl bg-orange-300/20 dark:bg-orange-700/10 animate-pulse-slow"></div>
+        <div class="absolute bottom-0 right-0 w-80 h-80 rounded-full blur-3xl bg-red-300/20 dark:bg-red-700/10 animate-pulse-slow"></div>
+    </div>
+
+    <div id="overlay" class="fixed inset-0 bg-black/50 hidden lg:hidden z-30"></div>
+    <aside id="offcanvas" class="fixed top-0 left-0 h-full w-72 z-40 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 bg-white/95 dark:bg-gray-900/95 backdrop-blur border-r border-gray-200 dark:border-gray-800 p-5 flex flex-col">
+        <div class="flex items-center justify-between mb-6">
+            <p class="text-lg font-bold">PlanBaba CRM</p>
+            <button id="closeMenu" class="lg:hidden p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Close menu">✕</button>
+        </div>
+        <nav class="space-y-1 text-sm">
+            <a href="#" class="block px-3 py-2 rounded-lg bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 font-semibold">Overview</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Leads</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Clients</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Tasks</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Reports</a>
+            <a href="#" class="block px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300">Integrations</a>
+        </nav>
+        <div class="mt-auto rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/60 p-4">
+            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Pipeline Goal</p>
+            <p class="text-xl font-bold mb-3">₹ 2.4 Cr</p>
+            <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full w-3/4 bg-gradient-to-r from-orange-500 to-red-500"></div>
+            </div>
+            <p class="text-xs mt-2 text-gray-500 dark:text-gray-400">75% achieved this quarter</p>
+        </div>
+    </aside>
+
+    <main class="lg:pl-72">
+        <header class="sticky top-0 z-20 border-b border-gray-200/80 dark:border-gray-800 bg-white/90 dark:bg-gray-950/80 backdrop-blur px-4 sm:px-6 py-3">
+            <div class="max-w-7xl mx-auto flex items-center gap-3 sm:gap-4">
+                <button id="openMenu" class="lg:hidden p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800" aria-label="Open menu">☰</button>
+                <div class="min-w-0">
+                    <h1 class="text-lg sm:text-xl font-semibold">Advisory Dashboard</h1>
+                    <p class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Track growth, clients, and business advisory outcomes.</p>
+                </div>
+                <div class="ml-auto flex items-center gap-2">
+                    <div class="hidden sm:flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-1.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">Live Sync</span>
+                    </div>
+                    <div class="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-0.5" id="theme-switch">
+                        <button data-theme="light" title="Light" class="p-1 rounded transition-colors">☼</button>
+                        <button data-theme="system" title="System" class="p-1 rounded transition-colors">◐</button>
+                        <button data-theme="dark" title="Dark" class="p-1 rounded transition-colors">☾</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+                <article class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/70 p-4">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Monthly Revenue</p>
+                    <p class="text-2xl font-bold mt-2">₹ 43.8L</p>
+                    <p class="text-xs mt-1 text-emerald-600 dark:text-emerald-400">+18.2% vs last month</p>
+                </article>
+                <article class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/70 p-4">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Open Opportunities</p>
+                    <p class="text-2xl font-bold mt-2">126</p>
+                    <p class="text-xs mt-1 text-orange-600 dark:text-orange-400">29 need follow-up this week</p>
+                </article>
+                <article class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/70 p-4">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Conversion Rate</p>
+                    <p class="text-2xl font-bold mt-2">31.4%</p>
+                    <p class="text-xs mt-1 text-emerald-600 dark:text-emerald-400">+4.1% since last quarter</p>
+                </article>
+                <article class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/70 p-4">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Team Utilization</p>
+                    <p class="text-2xl font-bold mt-2">82%</p>
+                    <p class="text-xs mt-1 text-sky-600 dark:text-sky-400">Healthy delivery bandwidth</p>
+                </article>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                <article class="xl:col-span-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/70 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="font-semibold">CRM Pipeline</h2>
+                        <button class="text-xs rounded-md border border-gray-200 dark:border-gray-700 px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-800">Export</button>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-gray-500 dark:text-gray-400">Discovery Calls</span><span>22 leads</span></div>
+                            <div class="h-2 rounded-full bg-gray-200 dark:bg-gray-700"><div class="h-full rounded-full bg-orange-500" style="width: 80%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-gray-500 dark:text-gray-400">Proposal Sent</span><span>15 leads</span></div>
+                            <div class="h-2 rounded-full bg-gray-200 dark:bg-gray-700"><div class="h-full rounded-full bg-amber-500" style="width: 62%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-gray-500 dark:text-gray-400">Negotiation</span><span>9 leads</span></div>
+                            <div class="h-2 rounded-full bg-gray-200 dark:bg-gray-700"><div class="h-full rounded-full bg-red-500" style="width: 43%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span class="text-gray-500 dark:text-gray-400">Won</span><span>6 accounts</span></div>
+                            <div class="h-2 rounded-full bg-gray-200 dark:bg-gray-700"><div class="h-full rounded-full bg-emerald-500" style="width: 28%"></div></div>
+                        </div>
+                    </div>
+                </article>
+                <article class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/70 p-4">
+                    <h2 class="font-semibold mb-3">Key Actions</h2>
+                    <ul class="space-y-2 text-sm">
+                        <li class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">Review 3 pending proposals</li>
+                        <li class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">Prepare QBR deck for Atlas Corp</li>
+                        <li class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700">Assign due diligence tasks</li>
+                    </ul>
+                </article>
+            </div>
+
+            <article class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-900/70 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="font-semibold">Client Opportunity Table</h2>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">Responsive & scrollable on small screens</span>
+                </div>
+                <div class="overflow-x-auto hide-scrollbar">
+                    <table class="min-w-[760px] w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                                <th class="py-2 pr-3">Client</th>
+                                <th class="py-2 pr-3">Service Line</th>
+                                <th class="py-2 pr-3">Stage</th>
+                                <th class="py-2 pr-3">Owner</th>
+                                <th class="py-2 pr-3">Value</th>
+                                <th class="py-2">Health</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-100 dark:border-gray-800">
+                                <td class="py-3 pr-3 font-medium">Aster Retail</td>
+                                <td class="py-3 pr-3">Growth Strategy</td>
+                                <td class="py-3 pr-3">Negotiation</td>
+                                <td class="py-3 pr-3">Nisha</td>
+                                <td class="py-3 pr-3">₹ 18L</td>
+                                <td class="py-3"><span class="px-2 py-1 rounded-full text-xs bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">Strong</span></td>
+                            </tr>
+                            <tr class="border-b border-gray-100 dark:border-gray-800">
+                                <td class="py-3 pr-3 font-medium">Rivera Tech</td>
+                                <td class="py-3 pr-3">M&A Readiness</td>
+                                <td class="py-3 pr-3">Proposal</td>
+                                <td class="py-3 pr-3">Aditya</td>
+                                <td class="py-3 pr-3">₹ 26L</td>
+                                <td class="py-3"><span class="px-2 py-1 rounded-full text-xs bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300">Medium</span></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 pr-3 font-medium">Northwind Foods</td>
+                                <td class="py-3 pr-3">Cost Optimization</td>
+                                <td class="py-3 pr-3">Discovery</td>
+                                <td class="py-3 pr-3">Pranay</td>
+                                <td class="py-3 pr-3">₹ 12L</td>
+                                <td class="py-3"><span class="px-2 py-1 rounded-full text-xs bg-sky-100 dark:bg-sky-900/40 text-sky-700 dark:text-sky-300">New</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        const themeSwitch = document.getElementById('theme-switch');
+        const themeButtons = themeSwitch.querySelectorAll('button');
+
+        function updateThemeButtons(mode) {
+            themeButtons.forEach(btn => {
+                const active = btn.dataset.theme === mode;
+                btn.classList.toggle('bg-white', active);
+                btn.classList.toggle('dark:bg-gray-700', active);
+                btn.classList.toggle('text-orange-600', active);
+                btn.classList.toggle('dark:text-orange-300', active);
+                btn.classList.toggle('text-gray-500', !active);
+                btn.classList.toggle('dark:text-gray-400', !active);
+            });
+        }
+
+        const initialTheme = localStorage.getItem('theme') || 'system';
+        updateThemeButtons(initialTheme);
+
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const selectedTheme = btn.dataset.theme;
+                localStorage.setItem('theme', selectedTheme);
+                applyTheme(selectedTheme);
+                updateThemeButtons(selectedTheme);
+            });
+        });
+
+        const offcanvas = document.getElementById('offcanvas');
+        const overlay = document.getElementById('overlay');
+
+        function closeMenu() {
+            offcanvas.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        function openMenu() {
+            offcanvas.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+
+        document.getElementById('openMenu').addEventListener('click', openMenu);
+        document.getElementById('closeMenu').addEventListener('click', closeMenu);
+        overlay.addEventListener('click', closeMenu);
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                overlay.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
