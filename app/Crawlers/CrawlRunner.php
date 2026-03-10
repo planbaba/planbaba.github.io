@@ -20,10 +20,7 @@ class CrawlRunner
         ]);
 
         try {
-            Crawler::create([
-                'allow_redirects' => true,
-                'timeout' => 15,
-            ])
+            Crawler::create($target->url)
                 ->setCrawlObserver(new CrawlStatsObserver($run))
                 ->setCrawlProfile(new CrawlUrlProfile($target))
                 ->ignoreRobots(!$target->respect_robots_txt)
