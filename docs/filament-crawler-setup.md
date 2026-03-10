@@ -25,3 +25,8 @@ php artisan queue:work
 ```
 
 5. Ensure your panel auto-discovers resources from `app/Filament/Resources` or register `CrawlTargetResource` manually.
+
+
+## Filament v5 structure note
+
+This implementation uses dedicated `Schemas/CrawlTargetForm.php` and `Tables/CrawlTargetsTable.php` classes, and the table action closure intentionally avoids an incompatible concrete type-hint on `$record` to prevent runtime type errors during closure evaluation.
