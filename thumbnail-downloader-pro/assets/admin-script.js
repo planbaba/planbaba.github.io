@@ -3,6 +3,8 @@
 
 	let statusInterval = null;
 	let logInterval = null;
+	let sawProcessingThisSession = false;
+	let completionReloadTriggered = false;
 
 	const ajaxConfig = window.tdpAjax || window.tdpData || null;
 
@@ -55,6 +57,10 @@
 				}
 
 				const data = response.data;
+
+				if (data.is_processing) {
+					sawProcessingThisSession = true;
+				}
 				$('#tdp-progress-bar').css('width', data.percentage + '%');
 				$('#tdp-progress-text').text(data.percentage + '%');
 				$('#tdp-stats').text(
@@ -80,7 +86,13 @@
 
 				if (!data.is_processing) {
 					stopPolling();
-					if (data.remaining === 0 && data.total > 0) {
+					if (
+						sawProcessingThisSession &&
+						!completionReloadTriggered &&
+						data.remaining === 0 &&
+						data.total > 0
+					) {
+						completionReloadTriggered = true;
 						setTimeout(function () {
 							window.location.reload();
 						}, 2000);
