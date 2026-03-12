@@ -183,7 +183,7 @@ final class AJMI_Plugin {
 		$action_id = as_schedule_single_action(
 			time() + 5,
 			self::ACTION_HOOK,
-			array( 'job_id' => $job_id, 'batch_number' => 1 ),
+			array( $job_id, 1 ),
 			self::ACTION_GROUP
 		);
 
@@ -253,9 +253,17 @@ final class AJMI_Plugin {
 		wp_send_json_success();
 	}
 
-	public function process_batch( $args = array() ) {
-		$job_id = isset( $args['job_id'] ) ? sanitize_text_field( (string) $args['job_id'] ) : '';
-		$batch_number = isset( $args['batch_number'] ) ? (int) $args['batch_number'] : 1;
+	public function process_batch( $arg1 = null, $arg2 = null ) {
+		$job_id = '';
+		$batch_number = 1;
+
+		if ( is_array( $arg1 ) ) {
+			$job_id = isset( $arg1['job_id'] ) ? sanitize_text_field( (string) $arg1['job_id'] ) : '';
+			$batch_number = isset( $arg1['batch_number'] ) ? (int) $arg1['batch_number'] : 1;
+		} else {
+			$job_id = sanitize_text_field( (string) $arg1 );
+			$batch_number = null !== $arg2 ? (int) $arg2 : 1;
+		}
 		$state = get_option( self::OPTION_STATE, self::default_state() );
 
 		if ( empty( $job_id ) || $state['job_id'] !== $job_id ) {
@@ -306,7 +314,7 @@ final class AJMI_Plugin {
 		$this->log( 'INFO', 'Batch finished', array( 'job_id' => $job_id, 'batch' => $batch_number, 'success' => $succ, 'failed' => $fail, 'remaining' => count( $remaining ) ) );
 
 		if ( ! empty( $remaining ) && ! empty( $state['is_processing'] ) ) {
-			$next_id = as_schedule_single_action( time() + 5, self::ACTION_HOOK, array( 'job_id' => $job_id, 'batch_number' => $batch_number + 1 ), self::ACTION_GROUP );
+			$next_id = as_schedule_single_action( time() + 5, self::ACTION_HOOK, array( $job_id, $batch_number + 1 ), self::ACTION_GROUP );
 			$this->kick_cron();
 			$this->log( 'INFO', 'Next batch scheduled', array( 'job_id' => $job_id, 'action_id' => $next_id ) );
 		} else {
