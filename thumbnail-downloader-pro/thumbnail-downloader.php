@@ -299,7 +299,7 @@ class Thumbnail_Downloader_Pro {
 				'percentage'      => min( 100, max( 0, $percent ) ),
 				'current_batch'   => (int) get_option( self::OPTION_CURRENT_BATCH, 0 ),
 				'pending_actions' => $this->count_actions_by_status( 'pending' ),
-				'running_actions' => $this->count_actions_by_status( 'running' ),
+				'running_actions' => $this->count_actions_by_status( 'in-progress' ),
 				'errors'          => array_slice( array_reverse( $errors ), 0, 5 ),
 			)
 		);
