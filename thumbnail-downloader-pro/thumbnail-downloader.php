@@ -142,6 +142,16 @@ class Thumbnail_Downloader_Pro {
 				'nonce'   => wp_create_nonce( 'tdp_nonce' ),
 			)
 		);
+
+		// Backward compatibility: support legacy object name used by older admin-script builds.
+		wp_localize_script(
+			'tdp-admin-script',
+			'tdpAjax',
+			array(
+				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+				'nonce'   => wp_create_nonce( 'tdp_nonce' ),
+			)
+		);
 	}
 
 	/**

@@ -4,6 +4,12 @@
 	let statusInterval = null;
 	let logInterval = null;
 
+	const ajaxConfig = window.tdpAjax || window.tdpData || null;
+
+	function hasAjaxConfig() {
+		return !!(ajaxConfig && ajaxConfig.ajaxUrl && ajaxConfig.nonce);
+	}
+
 	function startPolling() {
 		if (statusInterval) {
 			clearInterval(statusInterval);
@@ -30,9 +36,13 @@
 	}
 
 	function ajaxRequest(action, extraData = {}) {
-		return $.post(tdpData.ajaxUrl, {
+		if (!hasAjaxConfig()) {
+			return $.Deferred().reject('Missing AJAX config').promise();
+		}
+
+		return $.post(ajaxConfig.ajaxUrl, {
 			action,
-			nonce: tdpData.nonce,
+			nonce: ajaxConfig.nonce,
 			...extraData
 		});
 	}
@@ -151,6 +161,10 @@
 	});
 
 	$(document).ready(function () {
+		if (!hasAjaxConfig()) {
+			window.console.error('Thumbnail Downloader Pro: AJAX configuration is missing.');
+			return;
+		}
 		startPolling();
 	});
 })(jQuery);
