@@ -26,6 +26,7 @@ class Thumbnail_Downloader_Pro {
 	const OPTION_LOGS           = 'tdp_logs';
 	const OPTION_CURRENT_BATCH  = 'tdp_current_batch';
 	const OPTION_CURRENT_RUN_ID = 'tdp_current_run_id';
+	const OPTION_SKIPPED_VIDEOIDS = 'tdp_skipped_videoids';
 
 	const ACTION_HOOK  = 'tdp_process_batch';
 	const ACTION_GROUP = 'thumbnail_downloader';
@@ -64,6 +65,7 @@ class Thumbnail_Downloader_Pro {
 		add_option( self::OPTION_LOGS, array() );
 		add_option( self::OPTION_CURRENT_BATCH, 0 );
 		add_option( self::OPTION_CURRENT_RUN_ID, '' );
+		add_option( self::OPTION_SKIPPED_VIDEOIDS, array() );
 	}
 
 	/**
@@ -222,6 +224,33 @@ class Thumbnail_Downloader_Pro {
 			wp_send_json_error( 'No supported image URLs found in JSON.' );
 		}
 
+		$filter_result = $this->filter_existing_videoid_items( $urls );
+		$urls          = $filter_result['queue'];
+		$video_ids     = $filter_result['video_ids'];
+
+		update_option( self::OPTION_SKIPPED_VIDEOIDS, $video_ids );
+
+		if ( ! empty( $video_ids ) ) {
+			$this->log( 'INFO', 'Skipped existing video-id files before queueing', array( 'count' => count( $video_ids ), 'video_ids_sample' => array_slice( $video_ids, 0, 20 ) ) );
+		}
+
+		if ( empty( $urls ) ) {
+			$this->log( 'SUCCESS', 'All JSON entries already exist in Media Library. Nothing to download.', array( 'skipped_video_ids' => count( $video_ids ) ) );
+			update_option( self::OPTION_QUEUE, array() );
+			update_option( self::OPTION_PROCESSED, array() );
+			update_option( self::OPTION_ERRORS, array() );
+			update_option( self::OPTION_CURRENT_BATCH, 0 );
+			update_option( self::OPTION_CURRENT_RUN_ID, '' );
+			update_option( self::OPTION_PROCESSING, false );
+			wp_send_json_success(
+				array(
+					'total'             => 0,
+					'action_id'         => 0,
+					'skipped_video_ids' => $video_ids,
+				)
+			);
+		}
+
 		$sample = array_slice(
 			array_map(
 				function( $item ) {
@@ -263,8 +292,9 @@ class Thumbnail_Downloader_Pro {
 
 		wp_send_json_success(
 			array(
-				'total'     => count( $urls ),
-				'action_id' => $action_id,
+				'total'             => count( $urls ),
+				'action_id'         => $action_id,
+				'skipped_video_ids' => $video_ids,
 			)
 		);
 	}
@@ -675,6 +705,43 @@ class Thumbnail_Downloader_Pro {
 		}
 
 		return $results;
+	}
+
+
+	/**
+	 * Remove entries from queue when corresponding {videoid}.jpg already exists in Media Library.
+	 *
+	 * @param array $items Extracted queue items.
+	 * @return array{queue: array, video_ids: array}
+	 */
+	private function filter_existing_videoid_items( $items ) {
+		$queue     = array();
+		$video_ids = array();
+
+		foreach ( $items as $item ) {
+			$url      = is_array( $item ) && isset( $item['url'] ) ? (string) $item['url'] : (string) $item;
+			$filename = is_array( $item ) && ! empty( $item['filename'] ) ? (string) $item['filename'] : '';
+
+			if ( empty( $filename ) ) {
+				$filename = basename( (string) parse_url( $url, PHP_URL_PATH ) );
+			}
+			$filename = sanitize_file_name( $filename );
+
+			if ( preg_match( '/^(\d+)\.jpg$/i', $filename, $matches ) ) {
+				$attachment_id = $this->find_attachment_id_by_filename( $filename );
+				if ( $attachment_id > 0 ) {
+					$video_ids[] = $matches[1];
+					continue;
+				}
+			}
+
+			$queue[] = $item;
+		}
+
+		return array(
+			'queue'     => $queue,
+			'video_ids' => array_values( array_unique( $video_ids ) ),
+		);
 	}
 
 	/**

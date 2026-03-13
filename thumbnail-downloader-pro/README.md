@@ -106,6 +106,7 @@ Advanced Cron Manager can be used to inspect `action_scheduler_run_queue`. Manua
 
 - Handles invalid URLs, malformed JSON, and HTTP failures.
 - Skips duplicates using file existence checks.
+- Pre-queue optimization: entries matching `{videoid}.jpg` already present in Media Library are skipped before scheduling, reducing repeated endpoint pings.
 - Re-registers existing disk files not currently in Media Library.
 - Supports cancellation and restart.
 
